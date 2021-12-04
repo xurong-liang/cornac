@@ -147,7 +147,7 @@ class EFM(Recommender):
         self.use_item_aspect_popularity = use_item_aspect_popularity
         self.max_iter = max_iter
         self.seed = seed
-        
+
         # add attributes to store X, Y, A
         self.X, self.Y, self.A = None, None, None
 
@@ -209,7 +209,7 @@ class EFM(Recommender):
             A, X, Y = self._build_matrices(self.train_set)
             
             # now assign A, X, Y to corresponding member variables
-            self.A, self.X, self.Y = np.array(A), np.array(X), np.array(Y)
+            self.A, self.X, self.Y = A.toarray(), X.toarray(), Y.toarray()
             
             A_user_counts = np.ediff1d(A.indptr)
             A_item_counts = np.ediff1d(A.tocsc().indptr)
