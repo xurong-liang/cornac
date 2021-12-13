@@ -86,7 +86,8 @@ for r in rs:
                                   seed=seed_num)
         current_output = cornac.Experiment(
             eval_method=split_data, models=[model], metrics=metrics,
-            save_dir=res_path, save_model=False, dataset_name=dataset_name).run()
+            save_dir=res_path, save_model=write_output, dataset_name=dataset_name,
+            hyper_param_tuning=True, verbose=False).run()
         print(current_output, end="")
         if write_output:
             fp.write(current_output)
