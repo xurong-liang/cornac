@@ -2,7 +2,7 @@
 This script is used to tune the hyperparmeters of EFM model. In precise, the
 number of explicit (r) and implicit (r') factors are to be tuned
 
-Usage: python EFM_hyperparam_tuning.py path_to_reviews.pickle path_to_save_result (if applicable)
+Usage: python EFM_hyperparam_tuning.py path_to_reviews.pickle path_to_save_result (if applicable) verbose: yes/no dataset_name
 """
 
 import sys
@@ -13,8 +13,9 @@ from common_func import read_file, get_ratings_and_sentiments, test_ratio, valid
 seed_num = 1
 
 arg_num = len(sys.argv)
-if arg_num != 3:
-    print("python EFM_hyperparam_tuning.py path_to_reviews.pickle path_to_save_result; write None when N/A")
+if arg_num != 5:
+    print("python EFM_hyperparam_tuning.py path_to_reviews.pickle path_to_save_result; write None"
+          " when N/A verbose: yes/no dataset_name")
     exit(1)
 
 if sys.argv[1].title() == "None":
@@ -38,7 +39,11 @@ else:
         exit(1)
     write_output = True
 
-df, dataset_name = read_file(path)
+verbose = True if sys.argv[3].lower() == "yes" else False
+
+dataset_name = sys.argv[4]
+
+df = read_file(path)
 
 ratings, sentiments = get_ratings_and_sentiments(df)
 
@@ -64,18 +69,26 @@ ndcg = [cornac.metrics.NDCG(k=k) for k in sample_size]
 recall = [cornac.metrics.Recall(k=k) for k in sample_size]
 metrics = ndcg + recall
 
-# all settings of r's and r_prime's: 10 ~ 100 with 10 step size
-rs = [10 * _ for _ in range(1, 11)]
-r_primes = [10 * _ for _ in range(1, 11)]
+# all settings of r's and r_prime's
+rs = [10 * _ for _ in [1, 4, 8]]
+r_primes = [10 * _ for _ in [1, 4, 8]]
 
 if write_output:
     fp = open(os.path.join(res_path, f"{dataset_name}_hyperparam_tuning_res.log"), "w")
 
+settings = []
+
+metrics_settings = [f"{name}@{sz}" for sz in sample_size for name in ["NDCG", "Recall"]]
+for combination in metrics_settings:
+    locals()[combination] = []
+
 print(f"dataset {dataset_name}, now start hyperparam tuning:")
 for r in rs:
     for r_prime in r_primes:
-        current_setting = f"Current setting: r = {r}; r' = {r_prime}\n"
-        print(current_setting, end="")
+        current_setting = f"r = {r}; r' = {r_prime}"
+        settings.append(current_setting)
+        current_setting += "\n"
+        print(current_setting, end="") if verbose else None
         if write_output:
             fp.write(current_setting)
         model = cornac.models.EFM(num_explicit_factors=r, num_latent_factors=r_prime,
@@ -84,12 +97,37 @@ for r in rs:
                                   lambda_u=lambda_u, lambda_h=lambda_h,
                                   lambda_v=lambda_v, trainable=True, verbose=False,
                                   seed=seed_num)
-        current_output = cornac.Experiment(
+        experiment = current_output = cornac.Experiment(
             eval_method=split_data, models=[model], metrics=metrics,
             save_dir=res_path, save_model=write_output, dataset_name=dataset_name,
-            hyper_param_tuning=True, verbose=False).run()
-        print(current_output, end="")
+            hyper_param_tuning=True, verbose=False)
+        experiment.run()
+
+        scores = experiment.result[0].metric_avg_results
+        for combination in metrics_settings:
+            locals()[combination].append(scores[combination])
+
+        print(current_output, end="") if verbose else None
         if write_output:
             fp.write(current_output)
             fp.write("\n")
-fp.close()
+if write_output:
+    fp.close()
+
+
+for i in range(len(settings)):
+    text = f"setting = {settings[i]}, "
+    for metric in metrics_settings:
+        text += f"{metric} = {locals()[metric][i]}, "
+    print(text)
+print("\n")
+
+# now print out the best setting for each of the metric settings
+for i in metrics_settings:
+    metric_scores = locals()[i]
+    highest_idx = metric_scores.index(max(metric_scores))
+    param_setting = settings[highest_idx]
+    metric_score = metric_scores[highest_idx]
+
+    print(f"best setting for evaluation metric {i} = {param_setting}; with "
+          f"value = {metric_score:.8f}")
