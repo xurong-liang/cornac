@@ -10,7 +10,7 @@ import os
 import numpy as np
 import pandas as pd
 from cornac.data import SentimentModality
-from cornac.eval_methods import CrossValidation, RatioSplit, StratifiedSplit
+from cornac.eval_methods import RatioSplit
 
 
 def read_file(file_path: str):
@@ -48,7 +48,9 @@ def read_file(file_path: str):
         record["(F, S')"] = feature_opinion_pair
         record["feature_counts"] = feature_mentioned_count
         record["feature_sentiments"] = feature_mentioned_sentiments
-    return df
+
+    dataset_name = file_path.split("/")[-1].split(".")[0]
+    return df, dataset_name
 
 
 def get_ratings_and_sentiments(df):
@@ -73,10 +75,13 @@ def get_ratings_and_sentiments(df):
 
 
 seed_num = 1
-if len(sys.argv) != 3:
-    print("Please specify the path to file reviews.pickle and the path to save experiment results")
+if len(sys.argv) != 4:
+    print("python EFM.py path_to_reviews.pickle path_to_save_evaluation_res "
+          "save_resultant_matrices: yes/no")
     exit(1)
-path, res_path = sys.argv[1], sys.argv[2]
+path, res_path, save_matrices = sys.argv[1], sys.argv[2], sys.argv[3].lower()
+
+save_matrices = True if save_matrices == "yes" else False
 
 if not os.path.isfile(path):
     print("Invalid input file path")
@@ -85,7 +90,7 @@ if not os.path.isdir(res_path):
     print("Invalid save dir path")
     exit(1)
 
-df = read_file(path)
+df, dataset_name = read_file(path)
 
 ratings, sentiments = get_ratings_and_sentiments(df)
 
@@ -126,25 +131,32 @@ ndcg = [cornac.metrics.NDCG(k=k) for k in sample_size]
 recall = [cornac.metrics.Recall(k=k) for k in sample_size]
 
 # perform cross-validation
-cornac.Experiment(eval_method=split_data, models=[model], metrics=(ndcg + recall)).run()
+cornac.Experiment(eval_method=split_data, models=[model], metrics=(ndcg + recall),
+                  save_dir=res_path, save_model=False, dataset_name=dataset_name).run()
 
 # save inputs, outputs
 elements = ["X", "Y", "A", "U1", "U2", "V", "H1", "H2"]
-matrices_file = open(res_path + "matrices.npy", "wb")
-dimension_file = open(res_path + "dimensions.txt", "w")
-dimension_file.write("Inputs:\n")
+if save_matrices:
+    print(f"Result matrices will be stored in dir {res_path}")
+    matrices_file = open(res_path + "matrices.npy", "wb")
+    dimension_file = open(res_path + "dimensions.txt", "w")
+    dimension_file.write("Inputs:\n")
 for element in elements:
     matrix = getattr(model, element)
-    np.save(matrices_file, matrix)
+    if save_matrices:
+        np.save(matrices_file, matrix)
 
     if element == "U1":
         text = "Outputs:\n"
         print(text, end="")
-        dimension_file.write(text)
+        if save_matrices:
+            dimension_file.write(text)
 
     dim = f"{element}: {matrix.shape}\n"
     print(dim, end="")
-    dimension_file.write(dim)
+    if save_matrices:
+        dimension_file.write(dim)
 
-matrices_file.close()
-dimension_file.close()
+if save_matrices:
+    matrices_file.close()
+    dimension_file.close()

@@ -50,6 +50,11 @@ class Experiment:
         Path to a directory for storing trained models and logs. If None, 
         models will NOT be stored and logs will be saved in the current working directory.
 
+    dataset_name: The name of the dataset, if applicable. When this presents,
+        the output experiment name will be dataset_name.log instead of
+        timestamp.log
+    save_model: whether the model will be saved (only model)
+
     Attributes
     ----------
     result: array of :obj:`<cornac.experiment.result.Result>`, default: None
@@ -71,6 +76,8 @@ class Experiment:
         show_validation=True,
         verbose=False,
         save_dir=None,
+        dataset_name=None,
+        save_model=False
     ):
         self.eval_method = eval_method
         self.models = self._validate_models(models)
@@ -81,6 +88,8 @@ class Experiment:
         self.save_dir = save_dir
         self.result = None
         self.val_result = None
+        self.dataset_name = dataset_name
+        self.save_model = save_model
 
     @staticmethod
     def _validate_models(input_models):
@@ -139,7 +148,7 @@ class Experiment:
             if self.val_result is not None:
                 self.val_result.append(val_result)
 
-            if not isinstance(self.result, CVExperimentResult):
+            if self.save_model and not isinstance(self.result, CVExperimentResult):
                 model.save(self.save_dir)
 
         output = ""
@@ -151,6 +160,7 @@ class Experiment:
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
         save_dir = "." if self.save_dir is None else self.save_dir
-        output_file = os.path.join(save_dir, "CornacExp-{}.log".format(timestamp))
+        file_name = "CornacExp-{}.log".format(timestamp) if not self.dataset_name else self.dataset_name
+        output_file = os.path.join(save_dir, file_name)
         with open(output_file, "w") as f:
             f.write(output)

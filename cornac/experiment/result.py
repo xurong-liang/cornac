@@ -17,7 +17,7 @@ import numpy as np
 from collections import OrderedDict
 
 
-NUM_FMT = "{:.4f}"
+NUM_FMT = "{:.8f}"
 
 
 def _table_format(data, headers=None, index=None, extra_spaces=0, h_bars=None):
