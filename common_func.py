@@ -44,8 +44,7 @@ def read_file(file_path: str):
         record["feature_counts"] = feature_mentioned_count
         record["feature_sentiments"] = feature_mentioned_sentiments
 
-    dataset_name = file_path.split("/")[-1].split(".")[0]
-    return df, dataset_name
+    return df
 
 
 def get_ratings_and_sentiments(df):

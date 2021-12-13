@@ -14,11 +14,12 @@ from common_func import read_file, get_ratings_and_sentiments, test_ratio, valid
 
 
 seed_num = 1
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     print("python EFM.py path_to_reviews.pickle path_to_save_evaluation_res "
-          "save_resultant_matrices: yes/no")
+          "save_resultant_matrices: yes/no dataset_name")
     exit(1)
-path, res_path, save_matrices = sys.argv[1], sys.argv[2], sys.argv[3].lower()
+path, res_path, save_matrices, dataset_name = \
+    sys.argv[1], sys.argv[2], sys.argv[3].lower(), sys.argv[4]
 
 save_matrices = True if save_matrices == "yes" else False
 
@@ -29,7 +30,7 @@ if not os.path.isdir(res_path):
     print("Invalid save dir path")
     exit(1)
 
-df, dataset_name = read_file(path)
+df = read_file(path)
 
 ratings, sentiments = get_ratings_and_sentiments(df)
 
