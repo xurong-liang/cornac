@@ -130,5 +130,5 @@ for i in metrics_settings:
     param_setting = settings[highest_idx]
     metric_score = metric_scores[highest_idx]
 
-    print(f"best setting for evaluation metric {i} = {param_setting}; with "
+    print(f"best setting for evaluation metric {i}: {param_setting}; with "
           f"value = {metric_score:.8f}")
