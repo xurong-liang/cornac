@@ -70,8 +70,8 @@ recall = [cornac.metrics.Recall(k=k) for k in sample_size]
 metrics = ndcg + recall
 
 # all settings of r's and r_prime's
-rs = [10 * _ for _ in [1, 4, 8]]
-r_primes = [10 * _ for _ in [1, 4, 8]]
+rs = [10 * _ for _ in [1, 4, 8, 16]]
+r_primes = [10 * _ for _ in [1, 4, 8, 16]]
 
 if write_output:
     fp = open(os.path.join(res_path, f"{dataset_name}_hyperparam_tuning_res.log"), "w")
@@ -114,9 +114,9 @@ for r in rs:
 if write_output:
     fp.close()
 
-
+print("\nDetail results:")
 for i in range(len(settings)):
-    text = f"setting = {settings[i]}, "
+    text = f"setting: {settings[i]}, "
     for metric in metrics_settings:
         text += f"{metric} = {locals()[metric][i]}, "
     print(text)
