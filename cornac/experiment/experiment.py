@@ -54,6 +54,9 @@ class Experiment:
         the output experiment name will be dataset_name.log instead of
         timestamp.log
     save_model: whether the model will be saved (only model)
+    hyper_param_tuning: if current setting is for hyperparameter tuning, if it is,
+    no log will be saved to the path. Rather, the string output will be returned
+    by run() method
 
     Attributes
     ----------
@@ -77,7 +80,8 @@ class Experiment:
         verbose=False,
         save_dir=None,
         dataset_name=None,
-        save_model=False
+        save_model=False,
+        hyper_param_tuning=False
     ):
         self.eval_method = eval_method
         self.models = self._validate_models(models)
@@ -89,7 +93,8 @@ class Experiment:
         self.result = None
         self.val_result = None
         self.dataset_name = dataset_name
-        self.save_model = save_model
+        self.save_model = save_model,
+        self.hyper_param_tuning = hyper_param_tuning
 
     @staticmethod
     def _validate_models(input_models):
@@ -133,7 +138,10 @@ class Experiment:
                 self.val_result = ExperimentResult()
 
     def run(self):
-        """Run the Cornac experiment"""
+        """Run the Cornac experiment
+        :return evaluation string output, if hyper_param_tuning is enabled;
+            else None is returned
+        """
         self._create_result()
 
         for model in self.models:
@@ -156,11 +164,15 @@ class Experiment:
             output += "\nVALIDATION:\n...\n{}".format(self.val_result)
         output += "\nTEST:\n...\n{}".format(self.result)
 
-        print(output)
+        if not self.hyper_param_tuning:
+            print(output)
 
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
-        save_dir = "." if self.save_dir is None else self.save_dir
-        file_name = "CornacExp-{}.log".format(timestamp) if not self.dataset_name else self.dataset_name
-        output_file = os.path.join(save_dir, file_name)
-        with open(output_file, "w") as f:
-            f.write(output)
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
+            save_dir = "." if self.save_dir is None else self.save_dir
+            file_name = "CornacExp-{}.log".format(timestamp) \
+                if not self.dataset_name else self.dataset_name
+            output_file = os.path.join(save_dir, file_name)
+            with open(output_file, "w") as f:
+                f.write(output)
+        else:
+            return output
