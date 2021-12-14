@@ -157,6 +157,7 @@ class Experiment:
                 self.val_result.append(val_result)
 
             if self.save_model and not isinstance(self.result, CVExperimentResult):
+                exit(999)
                 model.save(self.save_dir)
 
         output = ""
@@ -170,7 +171,7 @@ class Experiment:
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
             save_dir = "." if self.save_dir is None else self.save_dir
             file_name = "CornacExp-{}.log".format(timestamp) \
-                if not self.dataset_name else self.dataset_name
+                if not self.dataset_name else self.dataset_name + ".log"
             output_file = os.path.join(save_dir, file_name)
             with open(output_file, "w") as f:
                 f.write(output)
