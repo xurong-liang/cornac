@@ -157,7 +157,8 @@ class Experiment:
                 self.val_result.append(val_result)
 
             if self.save_model and not isinstance(self.result, CVExperimentResult):
-                exit(999)
+                print(self.save_model)
+                exit(255)
                 model.save(self.save_dir)
 
         output = ""
