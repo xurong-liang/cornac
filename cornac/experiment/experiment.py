@@ -93,7 +93,7 @@ class Experiment:
         self.result = None
         self.val_result = None
         self.dataset_name = dataset_name
-        self.save_model = save_model,
+        self.save_model = save_model
         self.hyper_param_tuning = hyper_param_tuning
 
     @staticmethod
@@ -157,8 +157,6 @@ class Experiment:
                 self.val_result.append(val_result)
 
             if self.save_model and not isinstance(self.result, CVExperimentResult):
-                print(self.save_model)
-                exit(255)
                 model.save(self.save_dir)
 
         output = ""
