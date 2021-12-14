@@ -17,7 +17,8 @@ parser = ap.ArgumentParser()
 parser.add_argument("-input", type=str, required=True, help="The location of reviews.pickle")
 parser.add_argument("-output", type=str, default="None", help="Dir to output directory; "
                                                               "if no need then type 'None'")
-parser.add_argument("-save_matrices", type=str, default="yes", help="whether to save X, Y, U1, U2, H1, H2, V matrices "
+parser.add_argument("-save_matrices", type=str, default="yes", help="whether to save X, Y, U1,"
+                                                                    " U2, H1, H2, V matrices "
                                                                     "to the output dir")
 # r
 parser.add_argument("-r", type=int, required=True, help="The number of explicit factors")
