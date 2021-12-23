@@ -208,8 +208,8 @@ class EFM(Recommender):
         if self.trainable:
             A, X, Y = self._build_matrices(self.train_set)
             
-            # now assign A, X, Y to corresponding member variables
-            self.A, self.X, self.Y = A.toarray(), X.toarray(), Y.toarray()
+            # now assign A, X, Y to corresponding member variables: still output as csr_matrix
+            self.A, self.X, self.Y = A, X, Y
             
             A_user_counts = np.ediff1d(A.indptr)
             A_item_counts = np.ediff1d(A.tocsc().indptr)

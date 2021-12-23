@@ -6,7 +6,7 @@
 import cornac
 import os
 import argparse as ap
-
+import scipy.sparse as sparse
 import numpy as np
 from cornac.data import SentimentModality
 from cornac.eval_methods import RatioSplit
@@ -33,6 +33,7 @@ path, res_path, save_matrices, dataset_name = \
     args.input, args.output, args.save_matrices.lower(), args.name
 
 save_matrices = True if save_matrices == "yes" else False
+store_sparse_matrices = True if dataset_name.startswith("ele") else False
 
 if save_matrices and args.output == "None":
     print("Please specify the output folder")
@@ -84,17 +85,32 @@ recall = [cornac.metrics.Recall(k=k) for k in sample_size]
 cornac.Experiment(eval_method=split_data, models=[model], metrics=(ndcg + recall),
                   save_dir=res_path, save_model=False, dataset_name=dataset_name).run()
 
-# save inputs, outputs
+# save inputs, outputs: if not electronics dataset, store as np dense matrix in
+# single npy file; otherwise, store as a scipy sparse csr_matrix
 elements = ["X", "Y", "A", "U1", "U2", "V", "H1", "H2"]
 if save_matrices:
     print(f"Result matrices will be stored in dir {res_path}")
-    matrices_file = open(res_path + "matrices.npy", "wb")
+    if not store_sparse_matrices:
+        # all items stored in one single file
+        matrices_file = open(res_path + "matrices.npy", "wb")
+
     dimension_file = open(res_path + "dimensions.txt", "w")
     dimension_file.write("Inputs:\n")
 for element in elements:
+    # matrix here is csr_matrix
     matrix = getattr(model, element)
+
     if save_matrices:
-        np.save(matrices_file, matrix)
+        if not store_sparse_matrices:
+            matrix = matrix.toarray()
+            np.save(matrices_file, matrix)
+        else:
+            # store sparse matrix, each is an individual file
+            if isinstance(matrix, np.ndarray):
+                matrix = sparse.csr_matrix(matrix)
+
+            with open(res_path + f"{element}.npz", "wb") as fp:
+                sparse.save_npz(fp, matrix)
 
     if element == "U1":
         text = "Outputs:\n"
@@ -108,5 +124,6 @@ for element in elements:
         dimension_file.write(dim)
 
 if save_matrices:
-    matrices_file.close()
+    if not store_sparse_matrices:
+        matrices_file.close()
     dimension_file.close()
