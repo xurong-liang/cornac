@@ -20,6 +20,8 @@ parser.add_argument("-output", type=str, default="None", help="Dir to output dir
 parser.add_argument("-save_matrices", type=str, default="yes", help="whether to save X, Y, U1,"
                                                                     " U2, H1, H2, V matrices "
                                                                     "to the output dir")
+parser.add_argument("-sparse", type=str, default="yes", help="whether the matrices are stored as sparse ones")
+
 # r
 parser.add_argument("-r", type=int, required=True, help="The number of explicit factors")
 # r'
@@ -33,7 +35,8 @@ path, res_path, save_matrices, dataset_name = \
     args.input, args.output, args.save_matrices.lower(), args.name
 
 save_matrices = True if save_matrices == "yes" else False
-store_sparse_matrices = True if dataset_name.startswith("ele") else False
+
+store_sparse_matrices = True if (dataset_name.startswith("ele") or args.sparse) else False
 
 if save_matrices and args.output == "None":
     print("Please specify the output folder")
