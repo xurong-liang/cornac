@@ -21,8 +21,7 @@ if not os.path.isfile(input_path):
 
 with open(input_path, "rb") as fp:
     for matrix in matrices:
-        out = np.load(fp)
-        out = sparse.csr_matrix(out)
         with open(args.path + f"{matrix}.npz", "wb") as write_head:
-            sparse.save_npz(write_head, out)
+            sparse.save_npz(write_head, sparse.csr_matrix(np.load(fp)))
+        print(f"{matrix}.npz created")
 print("done")
